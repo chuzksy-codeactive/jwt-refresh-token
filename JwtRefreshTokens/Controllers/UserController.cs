@@ -1,5 +1,7 @@
-﻿using JwtRefreshTokens.Services;
+﻿using JwtRefreshTokens.Models;
+using JwtRefreshTokens.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace JwtRefreshTokens.Controllers
 {
@@ -11,6 +13,14 @@ namespace JwtRefreshTokens.Controllers
         public UserController(IUserService userService)
         {
             _userService = userService;
+        }
+
+        [HttpPost("register")]
+        public async Task<ActionResult> RegisterAsync(RegisterModel model)
+        {
+            var result = await _userService.RegisterAsync(model);
+
+            return Ok(result);
         }
     }
 }
