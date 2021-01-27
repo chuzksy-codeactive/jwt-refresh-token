@@ -1,4 +1,6 @@
 ﻿using JwtRefreshTokens.Constants;
+using JwtRefreshTokens.Contexts;
+using JwtRefreshTokens.Helpers;
 using JwtRefreshTokens.Models;
 using JwtRefreshTokens.Settings;
 using Microsoft.AspNetCore.Identity;
@@ -19,11 +21,17 @@ namespace JwtRefreshTokens.Services
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly JWT _jwt;
-        public UserService(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IOptions<JWT> jwt)
+        private readonly ApplicationDbContext _context;
+        public UserService(
+            UserManager<ApplicationUser> userManager, 
+            RoleManager<IdentityRole> roleManager, 
+            IOptions<JWT> jwt, 
+            ApplicationDbContext context)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _jwt = jwt.Value;
+            _context = context;
         }
 
         public async Task<string> RegisterAsync(RegisterModel model)
@@ -83,6 +91,25 @@ namespace JwtRefreshTokens.Services
                 var rolesList = await _userManager.GetRolesAsync(user).ConfigureAwait(false);
 
                 authenticationModel.Roles = rolesList.ToList();
+
+                if (user.RefreshTokens.Any(x => x.IsActive))
+                {
+                    var activeRefreshToken = user.RefreshTokens.Where(x => x.IsActive == true).FirstOrDefault();
+                    authenticationModel.RefreshToken = activeRefreshToken.Token;
+                    authenticationModel.RefreshTokenExpiration = activeRefreshToken.Expires;
+                }
+                else
+                {
+                    var refreshToken = JwtHelper.CreateRefreshToken();
+
+                    authenticationModel.RefreshToken = refreshToken.Token;
+                    authenticationModel.RefreshTokenExpiration = refreshToken.Expires;
+                    
+                    user.RefreshTokens.Add(refreshToken);
+
+                    _context.Update(user);
+                    await _context.SaveChangesAsync();
+                }
 
                 return authenticationModel;
             }

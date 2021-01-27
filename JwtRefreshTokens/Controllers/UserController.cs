@@ -7,7 +7,7 @@ namespace JwtRefreshTokens.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UserController : ControllerBase
+    public class UserController : BaseController
     {
         private readonly IUserService _userService;
         public UserController(IUserService userService)
@@ -27,6 +27,8 @@ namespace JwtRefreshTokens.Controllers
         public async Task<IActionResult> GetTokenAsync(TokenRequestModel model)
         {
             var result = await _userService.GetTokenAsync(model);
+
+            SetRefreshTokenInCookie(result.RefreshToken);
 
             return Ok(result);
         }
