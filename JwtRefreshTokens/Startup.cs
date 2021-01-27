@@ -31,6 +31,8 @@ namespace JwtRefreshTokens
 
         public IConfiguration Configuration { get; }
 
+        public static readonly ILoggerFactory JwtLoggerFactory = LoggerFactory.Create(builder => { builder.AddConsole(); });
+
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
@@ -44,9 +46,9 @@ namespace JwtRefreshTokens
 
             // Adding DB Context with MSSQL
             services.AddDbContext<ApplicationDbContext>(options =>
-            {
-                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName));
-            });
+                options
+                .UseLoggerFactory(JwtLoggerFactory)
+                .UseSqlServer(Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
 
             // Adding Authenticatin JWT
             services.AddAuthentication(options =>
