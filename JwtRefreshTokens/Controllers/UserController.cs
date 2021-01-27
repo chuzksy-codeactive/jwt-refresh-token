@@ -1,5 +1,6 @@
 ﻿using JwtRefreshTokens.Models;
 using JwtRefreshTokens.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
@@ -52,6 +53,15 @@ namespace JwtRefreshTokens.Controllers
                 SetRefreshTokenInCookie(response.RefreshToken);
 
             return Ok(response);
+        }
+
+        [Authorize]
+        [HttpPost("tokens/{id}")]
+        public IActionResult GetRefreshTokens(string id)
+        {
+            var user = _userService.GetById(id);
+
+            return Ok(user.RefreshTokens);
         }
     }
 }

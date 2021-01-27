@@ -238,5 +238,10 @@ namespace JwtRefreshTokens.Services
 
             return authenticationModel;
         }
+
+        public ApplicationUser GetById(string id)
+        {
+            return _context.Users.Find(id);
+        }
     }
 }
